@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guess The Number - Challenge</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #141e30, #243b55);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 25px 12px;
+            color: white;
+        }
+
+        .game-card {
+            width: 100%;
+            max-width: 550px;
+            background: rgba(255,255,255,0.09);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 15px 45px rgba(0,0,0,0.3);
+        }
+
+        .game-title {
+            font-weight: 800;
+            font-size: 32px;
+            background: linear-gradient(90deg, #00f2fe, #4facfe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: #cbd5e1;
+            font-size: 14px;
+        }
+
+        .number-box {
+            background: rgba(255,255,255,0.12);
+            border: 2px dashed #4facfe;
+            border-radius: 18px;
+            padding: 22px;
+            margin: 25px 0;
+        }
+
+        .mystery-number {
+            font-size: 55px;
+            font-weight: 800;
+            color: #00f2fe;
+        }
+
+        .form-control, .form-select {
+            background: #f8fafc;
+            border: none;
+            border-radius: 12px;
+            padding: 13px;
+            font-weight: 600;
+        }
+
+        .form-control:focus, .form-select:focus {
+            box-shadow: 0 0 0 3px rgba(79,172,254,0.4);
+        }
+
+        .btn-guess {
+            background: linear-gradient(90deg, #00c6ff, #0072ff);
+            color: white;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            padding: 13px;
+            transition: 0.3s;
+        }
+
+        .btn-guess:hover {
+            transform: translateY(-2px);
+            color: white;
+            box-shadow: 0 5px 20px rgba(0,114,255,0.4);
+        }
+
+        .btn-reset {
+            background: #ff4757;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-weight: 600;
+        }
+
+        .btn-reset:hover {
+            background: #e84118;
+            color: white;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .stat-box {
+            background: rgba(255,255,255,0.1);
+            border-radius: 13px;
+            padding: 15px 5px;
+        }
+
+        .stat-box h4 {
+            color: #00f2fe;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .stat-box small {
+            color: #cbd5e1;
+            font-size: 11px;
+        }
+
+        .message {
+            min-height: 55px;
+            border-radius: 12px;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            font-size: 14px;
+            font-weight: 600;
+            margin: 15px 0;
+        }
+
+        .history {
+            max-height: 130px;
+            overflow-y: auto;
+            text-align: left;
+        }
+
+        .history-item {
+            display: inline-block;
+            background: rgba(255,255,255,0.12);
+            padding: 6px 12px;
+            border-radius: 8px;
+            margin: 4px;
+            font-size: 12px;
+        }
+
+        .progress {
+            height: 10px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 20px;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #00f2fe, #4facfe);
+            transition: width 0.4s;
+        }
+
+        .footer-text {
+            color: #94a3b8;
+            font-size: 11px;
+            margin-top: 20px;
+        }
+
+        @media(max-width: 480px) {
+            .game-card {
+                padding: 20px 15px;
+            }
+
+            .game-title {
+                font-size: 26px;
+            }
+
+            .mystery-number {
+                font-size: 45px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="game-card text-center">
+
+    <h1 class="game-title">🎯 GUESS THE NUMBER</h1>
+    <p class="subtitle">Test your brain! Can you find the secret number?</p>
+
+    <div class="number-box">
+        <p class="mb-1">THE SECRET NUMBER IS</p>
+        <div class="mystery-number" id="secretDisplay">?</div>
+        <small class="text-info" id="rangeText">Choose a difficulty to begin</small>
+    </div>
+
+    <!-- Difficulty -->
+    <div class="text-start mb-3">
+        <label class="form-label fw-bold">🎮 Select Difficulty</label>
+        <select class="form-select" id="difficulty" onchange="startGame()">
+            <option value="easy">Easy (1 - 50)</option>
+            <option value="medium" selected>Medium (1 - 100)</option>
+            <option value="hard">Hard (1 - 500)</option>
+        </select>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats">
+        <div class="stat-box">
+            <h4 id="attempts">10</h4>
+            <small>❤️ Attempts Left</small>
+        </div>
+
+        <div class="stat-box">
+            <h4 id="score">0</h4>
+            <small>⭐ Score</small>
+        </div>
+
+        <div class="stat-box">
+            <h4 id="bestScore">0</h4>
+            <small>🏆 Best Score</small>
+        </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="text-start mb-2">
+        <small>Attempts Progress</small>
+    </div>
+
+    <div class="progress mb-4">
+        <div class="progress-bar" id="progressBar" style="width:100%"></div>
+    </div>
+
+    <!-- Guess Input -->
+    <div class="input-group mb-3">
+        <input
+            type="number"
+            id="guessInput"
+            class="form-control"
+            placeholder="Enter the number..."
+            min="1"
+        >
+        <button class="btn btn-guess px-4" id="guessBtn" onclick="checkGuess()">
+            GUESS
+        </button>
+    </div>
+
+    <!-- Hint Message -->
+    <div class="message" id="message">
+        🚀 Make your first guess and start the challenge!
+    </div>
+
+    <!-- Guess History -->
+    <div class="text-start mt-3">
+        <h6 class="fw-bold">📜 Your Guess History</h6>
+        <div class="history" id="history">
+            <span class="text-white-50 small">No guesses yet...</span>
+        </div>
+    </div>
+
+    <button class="btn btn-reset mt-4" onclick="startGame()">
+        🔄 New Game
+    </button>
+
+    <p class="footer-text">
+        Made for smart minds 💡 | Keep guessing, keep winning!
+    </p>
+
+</div>
+
+<!-- Confetti library for celebration -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+<script>
+
+    let secretNumber;
+    let maxNumber;
+    let totalAttempts;
+    let attemptsLeft;
+    let currentScore = 0;
+    let gameOver = false;
+
+    let bestScore = Number(localStorage.getItem("guessBestScore")) || 0;
+
+    const difficultySettings = {
+        easy: { max: 50, attempts: 10 },
+        medium: { max: 100, attempts: 10 },
+        hard: { max: 500, attempts: 12 }
+    };
+
+    function startGame() {
+
+        const difficulty = document.getElementById("difficulty").value;
+        const settings = difficultySettings[difficulty];
+
+        maxNumber = settings.max;
+        totalAttempts = settings.attempts;
+        attemptsLeft = totalAttempts;
+
+        secretNumber = Math.floor(Math.random() * maxNumber) + 1;
+
+        currentScore = 0;
+        gameOver = false;
+
+        document.getElementById("secretDisplay").innerText = "?";
+        document.getElementById("rangeText").innerText =
+            `Guess a number between 1 and ${maxNumber}`;
+
+        document.getElementById("attempts").innerText = attemptsLeft;
+        document.getElementById("score").innerText = 0;
+        document.getElementById("bestScore").innerText = bestScore;
+
+        document.getElementById("progressBar").style.width = "100%";
+
+        document.getElementById("message").innerHTML =
+            "🚀 New game started! Make your first guess.";
+
+        document.getElementById("history").innerHTML =
+            '<span class="text-white-50 small">No guesses yet...</span>';
+
+        document.getElementById("guessInput").value = "";
+        document.getElementById("guessInput").min = 1;
+        document.getElementById("guessInput").max = maxNumber;
+        document.getElementById("guessInput").disabled = false;
+
+        document.getElementById("guessBtn").disabled = false;
+
+        document.getElementById("guessInput").focus();
+    }
+
+    function checkGuess() {
+
+        if (gameOver) return;
+
+        const input = document.getElementById("guessInput");
+        const guess = Number(input.value);
+
+        if (input.value.trim() === "" || !Number.isInteger(guess)) {
+            showMessage("⚠️ Please enter a valid whole number!", "#ffc107");
+            return;
+        }
+
+        if (guess < 1 || guess > maxNumber) {
+            showMessage(`⚠️ Enter a number between 1 and ${maxNumber}.`, "#ffc107");
+            return;
+        }
+
+        attemptsLeft--;
+
+        document.getElementById("attempts").innerText = attemptsLeft;
+
+        let history = document.getElementById("history");
+
+        if (history.innerText.includes("No guesses yet")) {
+            history.innerHTML = "";
+        }
+
+        const item = document.createElement("span");
+        item.className = "history-item";
+        item.innerText = guess;
+        history.appendChild(item);
+
+        if (guess === secretNumber) {
+
+            const bonus = attemptsLeft * 10;
+            currentScore = 100 + bonus;
+
+            document.getElementById("score").innerText = currentScore;
+            document.getElementById("secretDisplay").innerText = secretNumber;
+
+            if (currentScore > bestScore) {
+                bestScore = currentScore;
+                localStorage.setItem("guessBestScore", bestScore);
+            }
+
+            document.getElementById("bestScore").innerText = bestScore;
+
+            showMessage(
+                `🎉 AMAZING! You found the number! +${bonus} bonus points! Total: ${currentScore} ⭐`,
+                "#20c997"
+            );
+
+            gameOver = true;
+            endGame();
+
+            if (typeof confetti === "function") {
+                confetti({
+                    particleCount: 180,
+                    spread: 100,
+                    origin: { y: 0.6 }
+                });
+            }
+
+        } else if (attemptsLeft === 0) {
+
+            document.getElementById("secretDisplay").innerText = secretNumber;
+
+            showMessage(
+                `💔 Game Over! The secret number was ${secretNumber}. Try again!`,
+                "#ff4757"
+            );
+
+            gameOver = true;
+            endGame();
+
+        } else {
+
+            const difference = Math.abs(secretNumber - guess);
+
+            let hint = "";
+
+            if (guess > secretNumber) {
+                hint = "📉 Too HIGH! Try a smaller number.";
+            } else {
+                hint = "📈 Too LOW! Try a bigger number.";
+            }
+
+            if (difference <= 5) {
+                hint += " 🔥 SUPER HOT! You're very close!";
+            } else if (difference <= 15) {
+                hint += " 🌡️ Warm! Getting closer!";
+            } else if (difference <= 30) {
+                hint += " ❄️ Cold! Keep trying!";
+            } else {
+                hint += " 🧊 ICE COLD! Think differently!";
+            }
+
+            showMessage(hint, "#4facfe");
+
+        }
+
+        const progress = (attemptsLeft / totalAttempts) * 100;
+
+        document.getElementById("progressBar").style.width = progress + "%";
+
+        input.value = "";
+
+        if (!gameOver) {
+            input.focus();
+        }
+    }
+
+    function showMessage(text, color) {
+        const message = document.getElementById("message");
+        message.innerHTML = text;
+        message.style.border = `1px solid ${color}`;
+    }
+
+    function endGame() {
+        document.getElementById("guessInput").disabled = true;
+        document.getElementById("guessBtn").disabled = true;
+    }
+
+    // Press Enter to guess
+    document.getElementById("guessInput").addEventListener("keydown", function(event) {
+        if (event.key === "Enter") {
+            checkGuess();
+        }
+    });
+
+    // Start game automatically
+    startGame();
+
+</script>
+
+</body>
+</html>
